@@ -1,31 +1,44 @@
-
 """
 Written by Wolfgang Rahfeldt
 For John Chau, Buddleja Project
-12 April 2017
+Written 12 April 2017
+Last Edited 4 September 2017
 
-Sequence_Filter.py takes in 2 required arguments:
---directory (folder with output folders for each sample from read_first.py from #HybPiper) and --tabfile (get_seq_lengths.py output from HybPiper)
+Two (2) required arguments:
+    --directory
+        folder with output folders for each sample from read_first.py from HybPiper
+    --tabfile 
+        get_seq_lengths.py output from HybPiper
 
-To run the script with defaults, you can run the following in command line:
-python Sequence_Filter.py --directory c:/folder --tabfile c:/tab.txt 
+Three (3) optional arguments:
+    --function
+        This argument can be either 'paralogs' , 'zeroes', or ‘both’. 
+        Default it is set to ‘both’, which will remove genes according to both of the below filters.
+        ‘paralogs’ will generate .csv files with a list of loci for Genes with No Paralogs #(Genes_NoParalogs.csv), 
+        a list of true paralogs across all samples (Total_Paralogs_Corrected.csv), and a list of true paralogs for each sample inside each 
+        sample folder (Paralogs_Corrected.csv)
+        'zeroes' will generate a .csv file in the main directory for genes that have less than the threshold of missing data (Genes_Have_Data.csv)
 
-There are 3 optional arguments:
+    --missingdata (for zeroes option)
+        By default, missingdata=0. This is the number of times a gene can have missing data #before it is removed from the list of candidates
 
---function
---function can be either 'paralogs' , 'zeroes', or ‘both’. 
-Default it is set to ‘both’, which will remove genes according to both of the below filters.
-‘paralogs’ will generate .csv files with a list of loci for Genes with No Paralogs #(Genes_NoParalogs.csv), a list of true paralogs across all samples #(Total_Paralogs_Corrected.csv), and a list of true paralogs for each sample inside each 
-sample folder (Paralogs_Corrected.csv)
-'zeroes' will generate a .csv file in the main directory for genes that have less than the #threshold of missing data (Genes_Have_Data.csv)
+    --contig_cutoff (for paralogs option)
+        By default, --contig_cutoff=1. This is the threshold of contigs for which a paralog is considered 'false'. 
 
---missingdata (for zeroes option)
-By default, missingdata=0. This is the number of times a gene can have missing data #before it is removed from the list of candidates
+On naming scheme of files:
+    All files will have two numbers appended to the end (e.g. Genes_NoParalogs_0_1.csv). 
+    The first number indicates the value of --missingdata, 
+    The second number indicates the value of --contig_cutoff.
 
---contig_cutoff (for paralogs option)
-By default, --contig_cutoff=1. This is the threshold of contigs for which a paralog is #considered 'false'. 
+Examples: 
+    Run the script with defaults:
+        $ python Sequence_Filter.py --directory c:/folder --tabfile c:/tab.txt 
+    Run script using the 'zeroes' setting, allowing a gene to have missing data for 2 taxa.
+        $ python Sequence_Filter.py --directory c:/folder --tabfile c:/tab.txt --function zeroes --missingdata 2
+
 """
 
+#imports
 import pandas as pd
 import sys
 import os
@@ -92,10 +105,8 @@ not_candidate_loci = count_zeroes.loc[count_zeroes > zero_threshold].index.tolis
 if function == 'zeroes' or function == 'both':
     write_list_to_csv(candidate_loci, folder_address, 'Genes_NoMissingData')
     write_list_to_csv(not_candidate_loci, folder_address, 'Genes_MissingData')
-    print('Loci without Missing Data:')
-    print(len(candidate_loci))
-    print('Loci with Missing Data:')
-    print(len(not_candidate_loci))
+    print('Loci without Missing Data: %s') % len(candidate_loci)
+    print('Loci with Missing Data: %s') % len(not_candidate_loci)
 
 if function == 'paralogs' or function == 'both':
     species_list = masterlist['Species'].values[1:]
@@ -137,12 +148,10 @@ if function == 'paralogs' or function == 'both':
     if function == 'both':
         final_candidate_loci = [locus for locus in candidate_loci if locus not in nparalog_filtered]
         write_list_to_csv(final_candidate_loci, folder_address, 'Genes_NoMissingData_NoParalogs')
-        print('Length of Final Candidate Loci:')
-        print(len(final_candidate_loci))
+        print('Length of Final Candidate Loci: %s') % len(final_candidate_loci)
 
     #generate final list of Loci without paralogs or missing data, write to file
     if function == 'paralogs' or function == 'both':
         no_paralogs_loci = [locus for locus in totalgenes if locus not in nparalog_filtered]
         write_list_to_csv(no_paralogs_loci, folder_address, 'Genes_NoParalogs')
-        print('Length of Loci without Paralogs:')
-        print(len(no_paralogs_loci))
+        print('Length of Loci without Paralogs: %s') % len(no_paralogs_loci)
