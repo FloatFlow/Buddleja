@@ -4,6 +4,7 @@ For John Chau, Evolutionary Analyses in Buddleja
 Last edited 4 September 2017
 
 This is a simple script to collect statistics based on designated loci
+
 """
 
 #Import libraries
@@ -34,6 +35,7 @@ parser.add_argument('-qt',
                     type=str, 
                     default='notype',
                     help= 'Can be "enrichment" or "depletion". "enrichment" will select loci whose names start with query. "depletion" will select loci whose names do NOT start with query. Default None. ')
+
 if len(sys.argv)==1:
     parser.print_help()
     sys.exit(1)
@@ -47,15 +49,17 @@ loci_df.columns = ['loci']
 #real jankily parse a fasta file
 def fasta_parser(locus):
     t_add = os.path.join(args.directory, str(locus + '.FNA'))
+
     #read in fasta file
     test_lo = pd.read_csv(t_add, sep='>', header=None)
     test_lo.columns = ['sequence', 'species']
 
-    ###parse fasta file
+    #parse fasta file
     #get indices of nan values
     inds = list(pd.isnull(test_lo[['sequence']]).any(1).nonzero()[0])
     inds.append(len(test_lo) + 1)
     test_lst = []
+
     #get each sequence and join fragments
     for i in range(len(inds)-1):
         test_lst.append(test_lo['sequence'].tolist()[inds[i]:inds[i+1]])
@@ -109,7 +113,7 @@ calc_df['sum'] = val_df.sum(axis=1)
 calc_df['median'] = val_df.median(axis=1)
 
 #Write to file
-destination_csv = os.path.join(args.directory, str('speciesstats' +'_'+  args.query +'_'+ args.querytype + '.csv'))
+destination_csv = os.path.join(args.directory, 'speciesstats_{}_{}.csv'.format(str(args.query), str(args.querytype)))
 calc_df.to_csv(destination_csv, index=None)
 
 print('Calculations Complete')

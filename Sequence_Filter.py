@@ -2,7 +2,7 @@
 Written by Wolfgang Rahfeldt
 For John Chau, Buddleja Project
 Written 12 April 2017
-Last Edited 4 September 2017
+Last Edited 11 September 2017
 
 Two (2) required arguments:
     --directory
@@ -18,10 +18,8 @@ Three (3) optional arguments:
         a list of true paralogs across all samples (Total_Paralogs_Corrected.csv), and a list of true paralogs for each sample inside each 
         sample folder (Paralogs_Corrected.csv)
         'zeroes' will generate a .csv file in the main directory for genes that have less than the threshold of missing data (Genes_Have_Data.csv)
-
     --missingdata (for zeroes option)
         By default, missingdata=0. This is the number of times a gene can have missing data #before it is removed from the list of candidates
-
     --contig_cutoff (for paralogs option)
         By default, --contig_cutoff=1. This is the threshold of contigs for which a paralog is considered 'false'. 
 
@@ -91,7 +89,7 @@ nallowed_paralogs = args.paralog_cutoff
 #write a list to csv
 def write_list_to_csv(loci_list, destination, new_filename):
     loci_df = pd.DataFrame(loci_list, index=None)
-    loci_destination = os.path.join(destination, str(new_filename + '_' + str(zero_threshold) + '_' + str(nallowed_paralogs) + '.csv'))
+    loci_destination = os.path.join(destination, '{}_{}_{}.csv'.format(str(new_filename), str(zero_threshold), str(nallowed_paralogs)))
     loci_df.to_csv(loci_destination, index=False)
 
 #Read in pre-generated loci list
@@ -124,7 +122,7 @@ if function == 'paralogs' or function == 'both':
         false_paralogs = []
         for f in paralog_list:
             if str(f) in totalgenes:
-                contig_address = os.path.join(species_address, f, str(f + '_contigs' + '.fasta'))
+                contig_address = os.path.join(species_address, f, '{}_contigs.fasta'.format(str(f))
                 contig_count = open(contig_address, 'r').read().count('>')
                 if contig_count == 1:
                     false_paralogs.append(str(f))
